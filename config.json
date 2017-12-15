@@ -1,0 +1,5 @@
+{
+    "BROKER": "redis://localhost:6379/0",
+    "BACKEND": "redis://localhost:6379/1",
+    "TASK_CREATE_MISSING_QUEUE": true
+}
