@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from tasks import add, minus, mult
 from kombu import Queue
 from celery import Celery, chain
@@ -61,6 +62,8 @@ class MainApp:
         '''
         self._configure_routing(feature_hash, WORKERS["WORKER1"])
 
+        # print("job1: %s" % self._celery_app.control.inspect().active())
+
         job = chain(
             add.s(2, 2).set(queue=feature_hash, routing_key=feature_hash),
             mult.s(3).set(queue=feature_hash, routing_key=feature_hash),
@@ -79,13 +82,15 @@ class MainApp:
 
         @param {string} feature_hash - the feature hash that representing a series of tasks
         '''
-        self._configure_routing(feature_hash, WORKERS["WORKER2"])
+        self._configure_routing(feature_hash, WORKERS["WORKER1"])
+
+        # print("job2: %s" % self._celery_app.control.inspect().active())
 
         job = chain(
             mult.s(2, 5).set(queue=feature_hash, routing_key=feature_hash),
             mult.s(3).set(queue=feature_hash, routing_key=feature_hash),
             minus.s(10).set(queue=feature_hash, routing_key=feature_hash),
-            add.s(18).set(queue=feature_hash, routing_key=feature_hash)
+            add.s(18).set(queue=feature_hash, routing_key=feature_hash),
         )
         
         job.delay()
@@ -101,6 +106,8 @@ class MainApp:
         @param {string} feature_hash - the feature hash that representing a series of tasks
         '''
         self._configure_routing(feature_hash, WORKERS["WORKER3"])
+
+        # print("job3: %s" % self._celery_app.control.inspect().active())
 
         job = chain(
             mult.s(2, 4).set(queue=feature_hash, routing_key=feature_hash), # cpu 10 mins
@@ -119,6 +126,8 @@ class MainApp:
         @param {string} feature_hash - the feature hash that representing a series of tasks
         '''
         self._configure_routing(feature_hash, WORKERS["WORKER2"])
+
+        # print("job4: %s" % self._celery_app.control.inspect().active())
 
         job = chain(
             mult.s(2, 4).set(queue=feature_hash, routing_key=feature_hash),
@@ -159,6 +168,6 @@ celery_app = CeleryApp.connect_workers()
 main_app = MainApp(celery_app)
 
 main_app.do_job1(HASHES["HASH1"])
-main_app.do_job2(HASHES["HASH2"])
-main_app.do_job3(HASHES["HASH3"])
-main_app.do_job4(HASHES["HASH1"])
+main_app.do_job2(HASHES["HASH1"])
+# main_app.do_job3(HASHES["HASH3"])
+# main_app.do_job4(HASHES["HASH1"])
